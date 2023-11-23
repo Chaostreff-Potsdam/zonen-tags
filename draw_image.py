@@ -5,8 +5,8 @@ def generate_image(name, pronouns, file_name, font_path):
     RED = ( 255, 0, 0 )
     WHITE = ( 255, 255, 255 )
     BLACK = ( 0, 0, 0 )
-    font_path = "agency_fb.ttf"
-    image = Image.open("cccp-template.jpg")#.convert(mode="P", colors=3)
+    font_path = "fonts/agency_fb.ttf"
+    image = Image.open("static/cccp-template.jpg")#.convert(mode="P", colors=3)
 
     # # # # Initialize the drawing context
     draw = ImageDraw.Draw(image)
@@ -24,8 +24,8 @@ def generate_image(name, pronouns, file_name, font_path):
     target_width = 172-x_top -6
     target_height = 84-y_top - 6
 
-    draw.rectangle((x_top, y_top, target_width + x_top, target_height + y_top),
-                fill=RED)
+    # draw.rectangle((x_top, y_top, target_width + x_top, target_height + y_top),
+    #             fill=RED)
 
     font_size = 5
     step_size = 1
@@ -60,9 +60,9 @@ def generate_image(name, pronouns, file_name, font_path):
 
     # # Write the text on the image
     draw.text(text_position_line1, line1, fill=BLACK, font=font_line1)  # Use palette index 1 for black color
-    draw.rectangle((x_top + res_x , y_top + res_y,
-                    text_bbox_line1[2] + x_top+res_x, text_bbox_line1[3] - text_bbox_line1[1] + y_top + res_y),
-                outline=BLACK)
+    # draw.rectangle((x_top + res_x , y_top + res_y,
+    #                 text_bbox_line1[2] + x_top+res_x, text_bbox_line1[3] - text_bbox_line1[1] + y_top + res_y),
+    #             outline=BLACK)
     # draw.text(text_position_line2, line2, fill=RED, font=font_line2)  # Use palette index 2 for red color
 
     # # Convert the image to 24-bit RGB

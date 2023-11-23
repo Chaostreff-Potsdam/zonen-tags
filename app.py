@@ -7,6 +7,7 @@ from flask import Flask, render_template
 from enum import Enum, auto
 import draw_image
 from PIL import Image
+from requests.exceptions import ConnectionError
 
 app = Flask(__name__)
 
@@ -40,11 +41,12 @@ def upload_image(image_path:str, display_size: DisplaySize, display_mac:str, ap_
     
     display_mac = display_mac.zfill(16)
     payload = {"dither": 1 if dither else 0, "mac": display_mac.upper()}
-    response = requests.post(url, data=payload, files={"file": buffer.getvalue()})
+    try:
+        response = requests.post(url, data=payload, files={"file": buffer.getvalue()})
+    except ConnectionError as error:
+        return jsonify({"message": "Could not connect to the access point", "file_name": image_path})
     print(response.text)
-    # response.raise_for_status()
     return jsonify({"message": response.text, "file_name": image_path})
-    # return response.text
 
 @app.route("/")
 def index():
