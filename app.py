@@ -36,7 +36,7 @@ def upload_image(image_path:str, display_size: DisplaySize, display_mac:str, ap_
     # rgb_image = rgb_image.resize(display_size.size)
     buffer = io.BytesIO()
     rgb_image.save(buffer, "JPEG", quality="maximum")
-    rgb_image.save("testing.jpg", "JPEG", quality="maximum")
+    # rgb_image.save("testing.jpg", "JPEG", quality="maximum")
     url = "http://" + ap_url + "/imgupload"
     
     display_mac = display_mac.zfill(16)
