@@ -85,8 +85,8 @@ def generate_image(
         top_left[1] + padding_y,
     )
     text_position_with_offset = (
-        text_position_without_offset - text_bbox[0],
-        text_position_without_offset - text_bbox[1],
+        text_position_without_offset[0] - text_bbox[0],
+        text_position_without_offset[1] - text_bbox[1],
     )
     if draw_text_area:
         draw.rectangle((*top_left, *bottom_right), fill=RED)

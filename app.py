@@ -41,7 +41,7 @@ def image_upload():
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
-                "message": "Could not connect to the access point",
+                "message": f"Could not connect to the access point at {AP_IP}.",
                 "file_name": temp_file_path,
             }
         )
@@ -61,14 +61,25 @@ def generate_image():
     name = data["nickname"]
     mac_address = data["macAddress"]
     display_size = DisplaySize[data["size"].upper()]
-    print(name, mac_address)
     file_name = f"static/user/{uuid.uuid4().hex}.jpg"
     draw_image.generate_image(
         name,
         template_image_path="static/image_templates/geekend1.jpg",
         output_path=file_name,
     )
-    return upload_image(file_name, display_size, mac_address, AP_IP)
+    try:
+        response = upload_image(file_name, display_size, mac_address, AP_IP)
+    except requests.exceptions.ConnectionError:
+        return jsonify(
+            {
+                "message": f"Could not connect to the access point at {AP_IP}.",
+                "file_name": file_name,
+            }
+        )
+    except ValueError as error:
+        return jsonify({"message": str(error), "file_name": file_name})
+    print(response.text)
+    return jsonify({"message": response.text, "file_name": file_name})
 
 
 if __name__ == "__main__":
