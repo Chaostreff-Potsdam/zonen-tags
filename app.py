@@ -3,7 +3,7 @@ import uuid
 from flask import Flask, jsonify, request, url_for, render_template
 import requests.exceptions
 import draw_image
-from upload_image import DisplaySize, upload_image
+from upload_image import upload_image
 
 app = Flask(__name__)
 
@@ -18,6 +18,7 @@ def index():
         bootstrap_css=url_for("static", filename="bootstrap.min.css"),
         bootstrap_js=url_for("static", filename="bootstrap.min.js"),
         jquery_js=url_for("static", filename="jquery.min.js"),
+        script_js=url_for("static", filename="script.js"),
         example_image=url_for("static", filename="example.jpg"),
     )
 
@@ -34,10 +35,9 @@ def image_upload():
     file.save(temp_file_path)
 
     mac_address = request.form.get("macAddress")
-    display_size = DisplaySize[request.form["size"].upper()]
 
     try:
-        response = upload_image(temp_file_path, display_size, mac_address, AP_IP)
+        response = upload_image(temp_file_path, mac_address, AP_IP)
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
@@ -57,18 +57,19 @@ def generate_image():
     # Get the data from the POST request
     data = request.get_json()
 
-    # Extract the name, pronouns, and mac address from the data
+    # Extract the name, and mac address from the data
     name = data["nickname"]
     mac_address = data["macAddress"]
-    display_size = DisplaySize[data["size"].upper()]
+
     file_name = f"static/user/{uuid.uuid4().hex}.jpg"
     draw_image.generate_image(
         name,
         template_image_path="static/image_templates/geekend1.jpg",
         output_path=file_name,
     )
+
     try:
-        response = upload_image(file_name, display_size, mac_address, AP_IP)
+        response = upload_image(file_name, mac_address, AP_IP)
     except requests.exceptions.ConnectionError:
         return jsonify(
             {

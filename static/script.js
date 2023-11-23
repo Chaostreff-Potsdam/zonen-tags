@@ -1,34 +1,70 @@
-var minimum = 0;
+$('#upload_image_form').on('keyup keypress', function (e) {
+  var keyCode = e.keyCode || e.which;
+  if (keyCode === 13) {
+      e.preventDefault();
+      $("#upload_image_button").click();
+      return false;
+  }
+});
+$('#form').on('keyup keypress', function (e) {
+  var keyCode = e.keyCode || e.which;
+  if (keyCode === 13) {
+      e.preventDefault();
+      $("#upload_button").click();
+      return false;
+  }
+});
+
 function getFormData($form) {
   var unindexed_array = $form.serializeArray();
   var indexed_array = {};
 
   $.map(unindexed_array, function (n, i) {
-    indexed_array[n['name']] = n['value'];
+      indexed_array[n['name']] = n['value'];
   });
 
   return indexed_array;
 }
 
-$('form').submit(function (event) {
-  event.preventDefault();
-  let formData = getFormData($("form"));
-  console.log(formData);
-  //check that money is positive
-  if (formData['money'] < minimum) {
-    $('#resultMessage').html("You cannot add a negative amount of money.");
-    $('#resultModal').modal('show');
-    return;
-  }
+$("#upload_button").on("click", function () {
+
+  let formData = getFormData($("#form"));
   $.ajax({
-    url: $(this).attr('action'),
-    type: "POST",
-    dataType: 'json',
-    data: JSON.stringify(formData),
-    contentType: 'application/json;charset=UTF-8',
-    success: function (data) {
-      $('#resultMessage').html(data['message'] + "</br> The new balance is <b>" + data['money'] + "€</b>.");
-      $('#resultModal').modal('show');
-    }
+      url: "upload",
+      type: "POST",
+
+      success: function (data) {
+          // $("#resultMessage").text(data["message"]);
+          // $("#resultModal").modal("show");
+          $("#toastBody").text(data["message"]);
+          $("#toast").toast("show");
+          $("#example").attr("src", data["file_name"]);
+      },
+      dataType: 'json',
+      data: JSON.stringify(formData),
+      contentType: 'application/json;charset=UTF-8',
+      // Tell jQuery not to process data or worry about content-type
+      // You *must* include these options!
+      cache: false,
+
+      processData: false,
+  });
+});
+
+$("#upload_image_button").on("click", function () {
+
+  $.ajax({
+      url: "image_upload",
+      type: "POST",
+      data: new FormData($("#upload_image_form")[0]),
+      success: function (data) {
+          $("#toastBody").text(data["message"]);
+          $("#toast").toast("show");
+          $("#example").attr("src", data["file_name"]);
+      },
+      processData: false,
+      contentType: false,
+      cache: false,
+
   });
 });

@@ -39,7 +39,6 @@ def expand_mac(mac: str):
 
 def upload_image(
     image_path: str,
-    display_size: DisplaySize,
     display_mac: str,
     ap_ip: str,
     dither: bool = False,
@@ -48,10 +47,10 @@ def upload_image(
     rgb_image = Image.open(image_path)
     rgb_image = rgb_image.convert("RGB")
 
-    if rgb_image.size != display_size.size:
+    if rgb_image.size not in {size.size for size in DisplaySize}:
         # pylint: disable=line-too-long
         raise ValueError(
-            f"Image size {rgb_image.size} does not match display size {display_size.size} ({display_size.name})."
+            f"Image size {rgb_image.size} does not match any display size."
         )
 
     payload = {"dither": int(bool(dither)), "mac": expand_mac(display_mac)}
@@ -66,21 +65,14 @@ def upload_image(
 @click.argument("ip")
 # @click.argument("mac")
 @click.argument("image_path")
-@click.option(
-    "-s",
-    "--display-size",
-    type=click.Choice(DisplaySize.__members__),
-    callback=lambda c, p, v: getattr(DisplaySize, v) if v else None,
-    default="MEDIUM",
-)
 @click.option("-d", "--dither", is_flag=True, show_default=True, default=False)
 @click.command()
-def main(image_path, ip, display_size, dither):
+def main(image_path, ip, dither):
     """Upload an image to the access point."""
     while True:
         mac = input("input mac to upload image: ")
         try:
-            upload_image(image_path, display_size, mac, ip, dither=dither)
+            upload_image(image_path, mac, ip, dither=dither)
         except ConnectionError:
             print("Could not connect to the access point")
 
