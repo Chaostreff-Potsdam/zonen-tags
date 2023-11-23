@@ -2,8 +2,8 @@
 import uuid
 from flask import Flask, jsonify, request, url_for, render_template
 import requests.exceptions
-import draw_image
-from upload_image import upload_image
+from .draw_image import generate_image
+from .upload_image import upload_image
 
 app = Flask(__name__)
 
@@ -52,7 +52,7 @@ def image_upload():
 
 
 @app.route("/upload", methods=["POST"])
-def generate_image():
+def upload():
     """Generate an image from the given data and upload it to the access point."""
     # Get the data from the POST request
     data = request.get_json()
@@ -62,7 +62,7 @@ def generate_image():
     mac_address = data["macAddress"]
 
     file_name = f"static/user/{uuid.uuid4().hex}.jpg"
-    draw_image.generate_image(
+    generate_image(
         name,
         template_image_path="static/image_templates/geekend1.jpg",
         output_path=file_name,
