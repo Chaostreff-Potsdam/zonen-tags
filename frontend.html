@@ -1,0 +1,109 @@
+<!-- FILEPATH: index.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Canvas Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'AgencyFB';
+            src: URL('agency_fb.ttf') format('truetype');
+        }
+    </style>
+    <!-- load bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container text-center">
+        <div class="row mb-4 mt-4">
+            <h1>Geekend Tag Configurator</h1>
+        </div>
+
+        <div class="row mb-4 mt-4">
+            <div class="col-md-3 col-md-offset-4 text-center">
+                <label for="nickname" class="form-label">Nickname:</label>
+                <input type="text" class="form-control" id="nameInput" name="nickname" placeholder="Enter your nickname"
+                    required>
+            </div>
+            <!-- <div class="col-sm-3 d-flex flex-column">
+                <input class="form-control" type="text" id="nameInput" placeholder="Enter your name">
+            </div> -->
+        </div>
+        <div class="row mb-4 mt-4">
+            <canvas id="canvas" width="400" height="400"></canvas>
+        </div>
+        <!-- <img id="image" src="" alt=""> -->
+        <script>
+            $(document).ready(function () {
+                // Get the canvas element
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+
+                // Load the image
+                var image = new Image();
+                image.src = "cccp-template.jpg";
+                image.onload = function () {
+                    // Draw the image on the canvas
+                    ctx.drawImage(image, 0, 0);
+                };
+
+                function getTextSize(ctx, text) {
+                    var metrics = ctx.measureText(text);
+                    return {
+                        width: metrics.width,
+                        height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+                        y_offset: metrics.actualBoundingBoxAscent};
+                }
+                
+                function setOptimalFontSize(ctx, text, target_size){
+                    let font_size = 5
+                    let step_size = 1
+                    let text_width = 0
+                    let text_height = 0
+                    let target_width = target_size[0]
+                    let target_height = target_size[1]
+                    
+                    do {
+                        ctx.font = font_size + "px AgencyFB";
+                        var text_size = getTextSize(ctx, text);
+                        
+                        font_size += step_size;
+                    } while (text_size.width < target_width && text_size.height < target_height)
+                    return text_size;
+                }
+
+                // Handle text input change event
+                $("#nameInput").on("input", function () {
+                    // Clear the canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw the image on the canvas
+                    ctx.drawImage(image, 0, 0);
+
+                    // Get the entered name
+                    var name = $(this).val();
+                    if (name == "") {
+                        return;
+                    }
+                    let x = 15;
+                    let y = 15;
+                    let target_height = 63;
+                    let target_width = 151;
+
+                    ctx.fillStyle = "red";
+
+                    var text_size = setOptimalFontSize(ctx, name, [target_width, target_height]);
+                    var padding_top = ((target_height - text_size.height) / 2);
+                    var padding_left = ((target_width - text_size.width) / 2);
+
+                    ctx.fillText(name, x + padding_left, y + padding_top + text_size.y_offset);
+                    // document.getElementById("image").src = canvas.toDataURL("image/jpg");
+                });
+            });
+        </script>
+</body>
+
+</html>
