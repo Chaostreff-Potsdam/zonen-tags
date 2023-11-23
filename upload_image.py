@@ -9,6 +9,7 @@ import click
 
 class DisplaySize(Enum):
     """Enum for the display sizes."""
+
     SMALL = auto()
     MEDIUM = auto()
     LARGE = auto()
@@ -82,6 +83,7 @@ def main(image_path, ip, display_size, dither):
             upload_image(image_path, display_size, mac, ip, dither=dither)
         except ConnectionError:
             print("Could not connect to the access point")
+
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter
