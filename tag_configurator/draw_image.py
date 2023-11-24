@@ -7,7 +7,7 @@ RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-FONT_BASE_PATH = "static/fonts"
+FONT_BASE_PATH = "tag_configurator/static/fonts"
 
 
 def build_font_path(font_name: str):

@@ -1,5 +1,6 @@
 """Main application file for the web server."""
 import uuid
+from pathlib import Path
 from flask import Flask, jsonify, request, url_for, render_template
 import requests.exceptions
 from .draw_image import generate_image
@@ -31,10 +32,12 @@ def image_upload():
     file = request.files["file"]
 
     # Save the file to a temporary location
-    temp_file_path = f"static/user/{uuid.uuid4().hex}.jpg"
+    temp_file_path = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
     file.save(temp_file_path)
 
     mac_address = request.form.get("macAddress")
+
+    relative_file_name = str(Path(temp_file_path).relative_to("tag_configurator/"))
 
     try:
         response = upload_image(temp_file_path, mac_address, AP_IP)
@@ -42,13 +45,13 @@ def image_upload():
         return jsonify(
             {
                 "message": f"Could not connect to the access point at {AP_IP}.",
-                "file_name": temp_file_path,
+                "file_name": relative_file_name,
             }
         )
     except ValueError as error:
-        return jsonify({"message": str(error), "file_name": temp_file_path})
+        return jsonify({"message": str(error), "file_name": relative_file_name})
     print(response.text)
-    return jsonify({"message": response.text, "file_name": temp_file_path})
+    return jsonify({"message": response.text, "file_name": relative_file_name})
 
 
 @app.route("/upload", methods=["POST"])
@@ -61,12 +64,13 @@ def upload():
     name = data["nickname"]
     mac_address = data["macAddress"]
 
-    file_name = f"static/user/{uuid.uuid4().hex}.jpg"
+    file_name = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
     generate_image(
         name,
-        template_image_path="static/image_templates/geekend1.jpg",
+        template_image_path="tag_configurator/static/image_templates/geekend1.jpg",
         output_path=file_name,
     )
+    relative_file_name = str(Path(file_name).relative_to("tag_configurator/"))
 
     try:
         response = upload_image(file_name, mac_address, AP_IP)
@@ -74,13 +78,13 @@ def upload():
         return jsonify(
             {
                 "message": f"Could not connect to the access point at {AP_IP}.",
-                "file_name": file_name,
+                "file_name": relative_file_name,
             }
         )
     except ValueError as error:
-        return jsonify({"message": str(error), "file_name": file_name})
+        return jsonify({"message": str(error), "file_name": relative_file_name})
     print(response.text)
-    return jsonify({"message": response.text, "file_name": file_name})
+    return jsonify({"message": response.text, "file_name": relative_file_name})
 
 
 if __name__ == "__main__":
