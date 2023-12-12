@@ -2,23 +2,29 @@
 import json
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
+import tomllib
+
 
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+COLORS = [BLACK, RED, WHITE]
+
 FONT_BASE_PATH = "tag_configurator/static/fonts"
+ICON_BASE_PATH = Path("tag_configurator/static/icons")
 
 
 def build_font_path(font_name: str):
     """Build the path to the font file."""
-    return f"{FONT_BASE_PATH}/{font_name}.ttf"
+    return f"{FONT_BASE_PATH}/{font_name}"
 
 
 def calculate_bounding_box(
     draw, font_path: str, font_size: int, text: str
 ) -> tuple[int, int, tuple[int, int, int, int]]:
     """Calculate the bounding box of the text."""
+    print(font_size)
     font = ImageFont.truetype(str(font_path), size=font_size)
     bounding_box = draw.textbbox((0, 0), text, font=font)
     text_width = bounding_box[2] - bounding_box[0]
@@ -45,56 +51,69 @@ def find_optimal_font_size(
     return font_size, calculate_bounding_box(draw, font_path, font_size, text)
 
 
-def generate_image(
-    name: str,
-    template_image_path: str,
-    output_path: str,
+def draw_text(
+    field_name: str,
+    content: str,
+    template_json: json,
+    draw,
     draw_bbox: bool = False,
     draw_text_area: bool = False,
 ):
-    """Generate the image with the given name and pronouns."""
-    template_image_path = Path(template_image_path)
-    template_json_path = template_image_path.with_suffix(".json")
+    """Draw the text on the image."""
+    field_settings = template_json[field_name]
 
-    image = Image.open(template_image_path)
+    font_path = build_font_path(field_settings["font"])
 
-    with open(template_json_path, encoding="utf-8") as template_json_file:
-        template_json = json.load(template_json_file)
+    top_left = field_settings["top_left"]
+    bottom_right = field_settings["bottom_right"]
+    margin = field_settings["margin"]
+    alignment = field_settings["align"]
+    vertical_alignment = field_settings["vertical-align"]
 
-    font_path = build_font_path(template_json["font"])
+    target_width = bottom_right[0] - top_left[0] - (margin[0] * 2)
+    target_height = bottom_right[1] - top_left[1] - (margin[1] * 2)
 
-    draw = ImageDraw.Draw(image)
+    if "font-size" in field_settings:
+        font_size = field_settings["font-size"]
+        text_width, text_height, text_bbox = calculate_bounding_box(
+            draw, font_path, font_size, content
+        )
+    else:
+        font_size, (text_width, text_height, text_bbox) = find_optimal_font_size(
+            draw, content, font_path, target_width, target_height
+        )
 
-    top_left = template_json["top_left"]
-    bottom_right = template_json["bottom_right"]
-    margin = template_json["margin"]
+    if alignment == "center":
+        padding_x = (target_width - text_width) // 2
+    elif alignment == "left":
+        padding_x = 0
+    elif alignment == "right":
+        padding_x = target_width - text_width
 
-    target_width = bottom_right[0] - top_left[0] - margin[0]
-    target_height = bottom_right[1] - top_left[1] - margin[1]
-
-    font_size, (text_width, text_height, text_bbox) = find_optimal_font_size(
-        draw, name, font_path, target_width, target_height
-    )
-
-    padding_x = (target_width - text_width) // 2
-    padding_y = (target_height - text_height) // 2
+    if vertical_alignment == "center":
+        padding_y = (target_height - text_height) // 2
+    elif vertical_alignment == "top":
+        padding_y = 0
+    elif vertical_alignment == "bottom":
+        padding_y = target_height - text_height
 
     # top left corner of the text
     text_position_without_offset = (
-        top_left[0] + padding_x,
-        top_left[1] + padding_y,
+        top_left[0] + padding_x + margin[0],
+        top_left[1] + padding_y + margin[1],
     )
+
     text_position_with_offset = (
         text_position_without_offset[0] - text_bbox[0],
         text_position_without_offset[1] - text_bbox[1],
     )
     if draw_text_area:
-        draw.rectangle((*top_left, *bottom_right), fill=RED)
+        draw.rectangle((*top_left, *bottom_right), fill=WHITE)
 
     draw.text(
         text_position_with_offset,
-        name,
-        fill=BLACK,
+        content,
+        fill=tuple(field_settings["color"]),
         font=ImageFont.truetype(font_path, size=font_size),
     )
     if draw_bbox:
@@ -106,6 +125,40 @@ def generate_image(
             ),
             outline=BLACK,
         )
+
+
+def draw_image(field_name, content, template_json, image):
+    """Draw the image on the image."""
+    image_settings = template_json[field_name]
+    icon_path = ICON_BASE_PATH / content
+    icon = Image.open(str(icon_path))
+    image.alpha_composite(icon, tuple(image_settings["top_left"]))
+
+
+def generate_image(
+    args: dict[str, dict],
+    template_image_path: str,
+    output_path: str,
+    draw_bbox: bool = False,
+    draw_text_area: bool = False,
+):
+    """Generate the image with the given name and pronouns."""
+    template_image_path = Path(template_image_path)
+    template_json_path = template_image_path.with_suffix(".toml")
+
+    image = Image.open(template_image_path).convert("RGBA")
+
+    with open(template_json_path, "rb") as template_json_file:
+        template_json = tomllib.load(template_json_file)
+
+    draw = ImageDraw.Draw(image)
+    draw.fontmode = "1"  # no anti-aliasing
+
+    for field_name, content in args.items():
+        if template_json[field_name]["type"] == "text":
+            draw_text(field_name, content, template_json, draw, draw_bbox, draw_text_area)
+        elif template_json[field_name]["type"] == "image":
+            draw_image(field_name, content, template_json, image)
 
     # Convert the image to 24-bit RGB
     rgb_image = image.convert("RGB")

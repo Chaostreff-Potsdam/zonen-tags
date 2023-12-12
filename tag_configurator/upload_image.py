@@ -1,5 +1,5 @@
-"""This script uploads an image to the access point."""
 #! python3
+"""This script uploads an image to the access point."""
 from enum import Enum, auto
 import io
 import requests
@@ -62,19 +62,20 @@ def upload_image(
     )
 
 
-@click.argument("ip")
-# @click.argument("mac")
 @click.argument("image_path")
+@click.argument("mac")
+@click.argument("ip")
 @click.option("-d", "--dither", is_flag=True, show_default=True, default=False)
 @click.command()
-def main(image_path, ip, dither):
+def main(ip, mac, image_path, dither):
     """Upload an image to the access point."""
-    while True:
-        mac = input("input mac to upload image: ")
-        try:
-            upload_image(image_path, mac, ip, dither=dither)
-        except ConnectionError:
-            print("Could not connect to the access point")
+    # while True:
+        # mac = input("input mac to upload image: ")
+    try:
+        response = upload_image(image_path, mac, ip, dither=dither)
+        print(response.content.decode("utf-8"))
+    except ConnectionError:
+        print("Could not connect to the access point")
 
 
 if __name__ == "__main__":
