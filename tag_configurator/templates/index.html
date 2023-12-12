@@ -4,6 +4,9 @@
 <head>
     <title>Chaos#Zonen-Tag Configurator</title>
     <link rel="stylesheet" href=" {{ bootstrap_css }}">
+    <link href="static/fontawesome/css/fontawesome.css" rel="stylesheet">
+    <link href="static/fontawesome/css/solid.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ css }}">
 </head>
 
 <body>
@@ -16,7 +19,7 @@
             <p>Enter your information below to configure your tag.</p>
         </div>
         <div class="mb-3">
-            <img id="example" src="{{ example_image }}" alt="Example Image" style="border: 3px solid black;">
+            <img id="example" src="{{ example_image }}" alt="Example Image" class="img">
             <br>
             <label for="example">Example Image</label>
         </div>
@@ -35,69 +38,181 @@
         <div class="tab-content" id="myTabContent">
             <!-- generate tab -->
             <div class="tab-pane fade show active" id="generate" role="tabpanel" aria-labelledby="generate-tab">
-                <div class="row">
-                    <form id="form">
-                        <div class="row justify-content-center">
-                            <div class="col-sm-3 d-flex flex-column">
-                                <label for="nickname" class="form-label">Nickname:</label>
-                                <input type="text" class="form-control" id="nickname" name="nickname"
+
+                <form id="form" hx-post="/upload" hx-target="#toastBody.text" class="form row g-3 mt-3 ">
+                    <!-- {% for row in rows %}
+                        {% for col in columns %}
+
+                        {% endfor %}
+                    {% endfor %} -->
+                    <div class="row">
+                        <!-- Nickname Input -->
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fa-solid fa-at"></i></span>
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg" id="name" name="name"
                                     placeholder="Enter your nickname" required>
-                            </div>
-                            <div class="col-sm-3 d-flex flex-column">
-                                <label for="macAddress" class="form-label">MAC Address:</label>
-                                <input type="text" class="form-control" id="macAddress" name="macAddress"
-                                    placeholder="Enter your MAC address" required>
-                            </div>
-                            <div class="col-sm-auto flex-column d-flex justify-content-end">
-                                <button id="upload_button" type="button" class="btn btn-primary btn-lg">Upload</button>
+                                <label for="nickname">Nickname</label>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Habitat Input -->
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><img src="static/icons/flagge.png" alt=""></span>
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg" id="habitat" name="habitat"
+                                    placeholder="Enter your nickname" required>
+                                <label for="nickname">Habitat</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <!-- Space Input -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><img class="icon" src="static/icons/house.png" alt=""></span>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control form-control-lg" id="space" name="space"
+                                        placeholder="Enter your nickname" required>
+                                    <label for="nickname">Space</label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Languages Input -->
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><img src="static/icons/text.png" alt=""></span>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control form-control-lg" id="languages"
+                                        name="languages" placeholder="Enter your nickname" required>
+                                    <label for="nickname">Languages</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <!-- DECT Input -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><img id="dectIcon" src="static/icons/handy.png" alt="" srcset="" width="100%"></span>
+                                <div class="form-floating">
+                                    <input type="hidden" name="third_line_icon1">
+                                    <input type="text" class="form-control form-control-lg" id="dect" name="dect"
+                                        placeholder="Enter your DECT Number" required>
+                                    <label for="nickname">DECT</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <!-- Pronouns Input -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><img src="static/icons/!.png" alt=""></span>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control form-control-lg" id="pronouns"
+                                        name="pronouns" placeholder="Enter your nickname" required>
+                                    <label for="nickname">Pronouns</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+
+                        <!-- MAC Input -->
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fa-solid fa-display"></i></span>
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg" id="macAddress"
+                                    name="macAddress" placeholder="Enter your MAC address" required>
+                                <label for="macAddress" class="form-label">MAC Address</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2 d-flex align-items-center">
+                        <div class="input-group mb-3">
+                            <button id="upload_button" type="button" class="btn btn-primary btn-lg">Upload</button>
+                        </div>
+                    </div>
+
+                </form>
+
             </div>
             <!-- upload tab -->
             <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
-                <div class="row">
-                    <!-- a form to upload an image -->
-                    <form id="upload_image_form" enctype="multipart/form-data">
-                        <div class="row justify-content-center">
-                            <div class="col-sm-5 d-flex flex-column">
-                                <label for="file" class="form-label">Image:</label>
-                                <input type="file" class="form-control" id="file" name="file" required>
-                            </div>
-                            <div class="col-sm-3 d-flex flex-column">
-                                <label for="macAddress2" class="form-label">MAC Address:</label>
+                <!-- a form to upload an image -->
+                <form id="upload_image_form" class="form row g-3 mt-3 align-items-center" enctype="multipart/form-data">
+                    <div class="col-md-5">
+                        <div class="input-group mb-3">
+                            <!-- <label for="file" class="form-label">Image:</label> -->
+                            <span class="input-group-text">Image</span>
+                            <input type="file" class="form-control form-control-lg" id="file" name="file" required>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fa-solid fa-display"></i></span>
+                            <div class="form-floating">
                                 <input type="text" class="form-control" id="macAddress2" name="macAddress"
                                     placeholder="Enter your MAC address" required>
+                                <label for="macAddress2" class="form-label">MAC Address</label>
                             </div>
-                            <!-- <div class="col-sm-2 d-flex flex-column">
-                                <label for="size">Select a Display Size:</label>
-                                <select class="form-control" name="size">
-                                    <option value="small">small</option>
-                                    <option value="medium">medium</option>
-                                     <option value="VinaSans-Regular">VinaSans-Regular</option>
-                                    <option value="IndieFlower-Regular">IndieFlower-Regular</option>
-                                </select>
-                            </div> -->
-
-                            <div class="col-sm-auto flex-column d-flex justify-content-end">
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-center">
+                        <div class="input-group mb-3 ">
+                            <!-- <div class="col-sm-auto flex-column d-flex justify-content-end"> -->
+                            <div class="form-floating">
                                 <button id="upload_image_button" type="button"
                                     class="btn btn-primary btn-lg">Upload</button>
                             </div>
                         </div>
-                </div>
-
+                    </div>
+                </form>
             </div>
         </div>
-
+        <!-- TOAST -->
+        <!-- <div class="position-fixed top-0 end-0 p-3"> -->
         <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div id="toastBody" class="toast-body"></div>
+            <div id="toastBody" class="toast-body">
+                <!-- Toast Content HERE -->
+            </div>
         </div>
+        <!-- </div> -->
+  
+  <!-- Modal -->
+  <div class="modal fade" id="iconSelectionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Select Icon</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            {% for icon in icons %}
+            <div class="col">
+                <img src="{{ icon }}" class="selectable-icon" width="100%"/>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
-        <!-- Include Bootstrap JavaScript -->
-        <script src="{{ bootstrap_js }}"></script>
-        <script src="{{ jquery_js }}"></script>
-        <script src=" {{ script_js }}"></script>
+    </div>
+    <!-- Include Bootstrap JavaScript -->
+    <script src="{{ bootstrap_js }}"></script>
+    <script src="{{ jquery_js }}"></script>
+    <script src="{{ script_js }}"></script>
+    <script src="{{ htmx_js }}"></script>
 </body>
 
 </html>
