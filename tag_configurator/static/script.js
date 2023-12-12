@@ -69,17 +69,23 @@ $("#upload_image_button").on("click", function () {
     });
 });
 
-$("#dectIcon").click(function () {
-    $("#iconSelectionModal img").each(function () {
-        $(this).click(function () {
-            $("#iconSelectionModal").modal("hide");
-            $("#dectIcon").attr("src", $(this).attr("src"));
-            let icon = $(this).attr("src").split("/");
-            console.log(icon);
-            console.log(icon[icon.length - 1]);
-            $("input[name='third_line_icon1']").attr("value", icon[icon.length - 1]);
+
+$("img[icon_slug]").each(function () {
+    $(this).click(function () {
+        let image = $(this);
+        let icon_slug = image.attr("icon_slug");
+        $("#iconSelectionModal img").each(function () {
+            let selected_icon = $(this);
+            selected_icon.off("click");
+            selected_icon.click(function () {
+                $("#iconSelectionModal").modal("hide");
+                image.attr("src", selected_icon.attr("src"));
+                let icon_path = $(this).attr("src").split("/");
+                let icon_name = icon_path[icon_path.length - 1];
+                $("#" + icon_slug).attr("value", icon_name);
+            });
         });
+        $("#iconSelectionModal").modal("show");
     });
-    $("#iconSelectionModal").modal("show");
 });
 

@@ -102,6 +102,16 @@ col img:hover {
     --bs-btn-hover-color: var(--base-gray20);
 }
 
+.btn-secondary {
+    --bs-btn-bg: var(--bs-body-bg);
+    --bs-btn-border-color: var(--primary-blue);
+    --bs-btn-color: var(--primary-blue);
+    --bs-btn-hover-bg: var(--primary-blue);
+    --bs-btn-hover-border-color: var(--primary-blue);
+    --bs-btn-hover-color: var(--base-gray20);
+}
+
+
 .form-control {
     background-color: var(--base-gray20);
 }

@@ -14,18 +14,47 @@ AP_IP = "192.168.178.243"
 @app.route("/")
 def index():
     """Render the index page."""
+    inputs = [
+        [{"name": "Nickname", "icon": "user.png"}],
+        [{"name": "Habitat", "icon": "flag.png", "icon_slug": "first_line_icon"}],
+        [
+            {"name": "Space", "icon": "house.png", "icon_slug": "second_line_icon1"},
+            {
+                "name": "Languages",
+                "icon": "speech_bubble.png",
+                "icon_slug": "second_line_icon2",
+            },
+        ],
+        [
+            {"name": "DECT", "icon": "phone.png", "icon_slug": "third_line_icon1"},
+            {
+                "name": "Pronouns",
+                "icon": "exclamation_mark.png",
+                "icon_slug": "third_line_icon2",
+            },
+        ],
+        # [{"name": "MAC Address", "icon": "mac.png"}],
+    ]
+
+    for row in inputs:
+        for field in row:
+            field["slug"] = field["name"].lower().replace(" ", "_")
+            field["icon"] = "static/icons/" + field["icon"]
+
     return render_template(
         "index.html",
+        inputs=inputs,
         bootstrap_css=url_for("static", filename="bootstrap.min.css"),
-        css = url_for("static", filename="style.css"),
-        
+        css=url_for("static", filename="style.css"),
         bootstrap_js=url_for("static", filename="bootstrap.bundle.min.js"),
         jquery_js=url_for("static", filename="jquery.min.js"),
         script_js=url_for("static", filename="script.js"),
-        
         example_image=url_for("static", filename="example.jpg"),
         htmx_js=url_for("static", filename="htmx.min.js"),
-        icons = [url_for("static",  filename=path.relative_to("tag_configurator/static")) for path in Path("tag_configurator/static/icons").glob("*.png")],
+        icons=[
+            url_for("static", filename=path.relative_to("tag_configurator/static"))
+            for path in Path("tag_configurator/static/icons").glob("*.png")
+        ],
     )
 
 
@@ -72,20 +101,7 @@ def upload():
     file_name = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
     print(data)
     generate_image(
-        {
-            **data,
-            # "name": name,
-            # "habitat": "...ChaosZone",
-            # "space": "...CCC-P",
-            # "languages": "...de/en",
-            # "pronouns": "...he/him",
-            # "dect": "...7727",
-            "first_line_icon": "flagge.png",
-            "second_line_icon1": "house.png",
-            # "third_line_icon1": "handy.png",
-            "second_line_icon2": "text.png",
-            "third_line_icon2": "!.png",
-        },
+        data,
         template_image_path="tag_configurator/static/image_templates/37c3.png",
         output_path=file_name,
     )
