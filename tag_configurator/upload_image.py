@@ -70,7 +70,7 @@ def upload_image(
 def main(ip, mac, image_path, dither):
     """Upload an image to the access point."""
     # while True:
-        # mac = input("input mac to upload image: ")
+    # mac = input("input mac to upload image: ")
     try:
         response = upload_image(image_path, mac, ip, dither=dither)
         print(response.content.decode("utf-8"))

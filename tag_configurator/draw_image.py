@@ -156,7 +156,9 @@ def generate_image(
 
     for field_name, content in args.items():
         if template_json[field_name]["type"] == "text":
-            draw_text(field_name, content, template_json, draw, draw_bbox, draw_text_area)
+            draw_text(
+                field_name, content, template_json, draw, draw_bbox, draw_text_area
+            )
         elif template_json[field_name]["type"] == "image":
             draw_image(field_name, content, template_json, image)
 
