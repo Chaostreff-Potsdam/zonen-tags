@@ -1,0 +1,86 @@
+
+[name]
+type="text"
+top_left = [4, 11]
+bottom_right = [202, 44]
+margin = [4, 2]
+font = "GabriellaHeavy.otf"
+align = "center"
+vertical-align = "center"
+color = [255,255,255]
+
+[habitat]
+type="text"
+top_left = [26, 62]
+bottom_right = [202, 80]
+margin = [2, 0]
+font = "VCROCDFaux.ttf"
+color = [255, 255, 255]
+align = "left"
+vertical-align = "bottom"
+font-size = 20
+
+[space]
+type="text"
+color=  [255,255,255]
+align=  "left"
+vertical-align=  "bottom"
+top_left = [26, 82]
+bottom_right = [202, 100]
+margin = [2, 0]
+font = "VCROCDFaux.ttf"
+font-size = 20
+
+[languages]
+type="text"
+align=  "left"
+vertical-align=  "bottom"
+top_left = [130, 82]
+bottom_right = [279, 100]
+margin = [0, 0]
+font = "VCROCDFaux.ttf"
+color = [255, 255, 255]
+font-size = 20
+
+[dect]
+type="text"
+align=  "left"
+vertical-align=  "bottom"
+top_left = [26, 102]
+bottom_right = [202, 120]
+margin = [2, 0]
+font = "VCROCDFaux.ttf"
+color = [255, 255, 255]
+font-size = 20
+
+[pronouns]
+type="text"
+align=  "left"
+vertical-align=  "bottom"
+top_left = [130, 104]
+bottom_right = [279, 120]
+margin = [0, 0]
+font = "VCROCDFaux.ttf"
+color = [255, 255, 255]
+font-size = 20
+
+[first_line_icon]
+type="image"
+top_left = [9, 62]
+
+[second_line_icon1]
+type="image"
+top_left = [9, 82]
+
+[third_line_icon1]
+type="image"
+top_left = [9, 102]
+
+
+[second_line_icon2]
+type="image"
+top_left = [112, 82]
+
+[third_line_icon2]
+type="image"
+top_left = [112, 102]

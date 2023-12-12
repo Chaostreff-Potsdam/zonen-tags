@@ -1,0 +1,146 @@
+{
+    "name": {
+        "top_left": [
+            4,
+            11
+        ],
+        "bottom_right": [
+            202,
+            44
+        ],
+        "margin": [
+            4,
+            2
+        ],
+        "font": "GabriellaHeavy.otf",
+        "color": [
+            255,
+            255,
+            255
+        ],
+        "align": "center",
+        "vertical-align": "center"
+    },
+    "habitat": {
+        "top_left": [
+            59,
+            60
+        ],
+        "bottom_right": [
+            202,
+            80
+        ],
+        "margin": [
+            0,
+            0
+        ],
+        "font": "VCROCDFaux.ttf",
+        "color": [
+            255,
+            255,
+            255
+        ],
+        "align": "left",
+        "vertical-align": "bottom",
+        "font-size": 20
+    },
+    "space": {
+        "top_left": [
+            59,
+            82
+        ],
+        "bottom_right": [
+            202,
+            102
+        ],
+        "margin": [
+            0,
+            0
+        ],
+        "font": "VCROCDFaux.ttf",
+        "color": [
+            255,
+            255,
+            255
+        ],
+        "align": "left",
+        "vertical-align": "bottom",
+        "font-size": 20
+    },
+    "languages": {
+        "top_left": [
+            169,
+            82
+        ],
+        "bottom_right": [
+            279,
+            102
+        ],
+        "margin": [
+            0,
+            0
+        ],
+        "font": "VCROCDFaux.ttf",
+        "color": [
+            255,
+            255,
+            255
+        ],
+        "align": "left",
+        "vertical-align": "bottom",
+        "font-size": 20
+    },
+    "dect": {
+        "top_left": [
+            59,
+            104
+        ],
+        "bottom_right": [
+            202,
+            124
+        ],
+        "margin": [
+            0,
+            0
+        ],
+        "font": "VCROCDFaux.ttf",
+        "color": [
+            255,
+            255,
+            255
+        ],
+        "align": "left",
+        "vertical-align": "bottom",
+        "font-size": 20
+    },
+    "pronouns": {
+        "top_left": [
+            169,
+            104
+        ],
+        "bottom_right": [
+            279,
+            124
+        ],
+        "margin": [
+            0,
+            0
+        ],
+        "font": "VCROCDFaux.ttf",
+        "color": [
+            255,
+            255,
+            255
+        ],
+        "align": "left",
+        "vertical-align": "bottom",
+        "font-size": 20
+    },
+    "first_line_icon":{
+        "top_left": [
+            4,
+            4
+        ]
+    }
+
+}

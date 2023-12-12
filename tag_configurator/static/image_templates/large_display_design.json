@@ -1,0 +1,25 @@
+{
+    "text": {
+        "top_left": [
+            39,
+            256
+        ],
+        "bottom_right": [
+            600,
+            354
+        ],
+        "margin": [
+            3,
+            3
+        ],
+        "font": "agency_fb.ttf",
+        "color": [
+            0,
+            0,
+            0
+        ],
+        "align": "left",
+        "vertical-align": "center"
+    }
+}
+
