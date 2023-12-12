@@ -6,6 +6,20 @@ $('#upload_image_form').on('keyup keypress', function (e) {
         return false;
     }
 });
+
+$("#save_button").on("click", function () {
+    let formData = getFormData($("#form"));
+    let download_link = $("#json_download");
+    download_link.attr("href", "data:text/json;charset=utf-8," +
+     encodeURIComponent(JSON.stringify(formData)));
+    download_link.attr("download", formData.nickname + ".json");
+    download_link[0].click();
+});
+
+$("#load_button").on("click", function () {
+   $("#load_modal").modal("show");
+});
+
 $('#form').on('keyup keypress', function (e) {
     var keyCode = e.keyCode || e.which;
     if (keyCode === 13) {
@@ -14,6 +28,26 @@ $('#form').on('keyup keypress', function (e) {
         return false;
     }
 });
+
+$("#load_confirm").on("click", function () {
+    let file = $("#load_file")[0].files[0];
+    let reader = new FileReader();
+    reader.onload = function (e) {
+        let json = JSON.parse(e.target.result);
+        for (let key in json) {
+            $("#" + key).val(json[key]);
+            if (key.includes("icon")) {
+                let image = $("img[icon_slug='" + key + "']");
+                console.log(image);
+                image.attr("src", "static/icons/" + json[key]);
+                image.attr("alt", json[key]);
+            }    
+        }
+    };
+    reader.readAsText(file);
+});
+
+
 
 function getFormData($form) {
     var unindexed_array = $form.serializeArray();
