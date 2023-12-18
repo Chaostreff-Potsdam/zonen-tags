@@ -9,7 +9,8 @@ authors = [{ name = "source", email = "source@ccc-p.org" }]
 readme = "README.md"
 license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
+dynamic = ["version"]
+description = "A tool to configure the ChaosZonen Tags."
 requires-python = ">=3.9"
 dependencies = [
     "click",
@@ -22,3 +23,9 @@ dependencies = [
 
 [project.urls]
 Home = "https://www.ccc-p.org"
+
+[tool.setuptools]
+packages = ["tag_configurator"]
+
+[tool.setuptools_scm]
+# pass
