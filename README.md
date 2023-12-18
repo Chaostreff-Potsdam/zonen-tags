@@ -6,7 +6,7 @@ This is a simple website to generate and upload images to [Open EPaper Link Acce
 
 ### Prerequisites
 
-* [Python 3.11+](https://www.python.org)
+* [Python 3.9+](https://www.python.org)
 * [Git LFS](https://git-lfs.com) installed (for the images)
 
 ### Installing
