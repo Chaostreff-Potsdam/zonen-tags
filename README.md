@@ -16,3 +16,9 @@ You can configure the IP of the AP you want to use in `config.toml`.
 ~~~toml
 AP_IP = "1.2.3.4"
 ~~~
+
+Alternatively you can set the environment variable `FLASK_AP_IP`.
+
+~~~bash
+FLASK_AP_IP=1.2.3.4 flask --app tag_configurator.app run --port 8000 --host 0.0.0.0  
+~~~
