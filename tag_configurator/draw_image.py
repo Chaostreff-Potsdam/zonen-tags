@@ -1,9 +1,14 @@
 """This script draws text on an image and saves it as a JPEG file."""
 import json
+try:
+    import tomllib
+except ImportError:
+    # use tomli as drop in replacement for tomllib
+    # only for python<3.11
+    import tomli as tomllib
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
-import tomllib
 
+from PIL import Image, ImageDraw, ImageFont
 
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)

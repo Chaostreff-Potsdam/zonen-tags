@@ -1,11 +1,18 @@
 """Main application file for the web server."""
+try:
+    import tomllib
+except ImportError:
+    # use tomli as drop in replacement for tomllib
+    # only for python<3.11
+    import tomli as tomllib
 import uuid
 from pathlib import Path
-from flask import Flask, jsonify, request, url_for, render_template
+
 import requests.exceptions
+from flask import Flask, jsonify, render_template, request, url_for
+
 from .draw_image import generate_image
 from .upload_image import upload_image
-import tomllib
 
 app = Flask(__name__)
 
@@ -125,18 +132,6 @@ def upload():
         return jsonify({"message": str(error), "file_name": relative_file_name})
     print(response.text)
     return jsonify({"message": response.text, "file_name": relative_file_name})
-
-
-from flask import send_file
-
-
-@app.route("/get_image")
-def get_image():
-    if request.args.get("type") == "1":
-        filename = "ok.gif"
-    else:
-        filename = "error.gif"
-    return send_file(filename, mimetype="image/gif")
 
 
 if __name__ == "__main__":
