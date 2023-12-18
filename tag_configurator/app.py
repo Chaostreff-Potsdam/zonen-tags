@@ -9,8 +9,11 @@ import tomllib
 
 app = Flask(__name__)
 
-app.config.from_file("config.toml", load=tomllib.load, text=False)
+app.config.from_file("config.toml", load=tomllib.load, text=False, silent=True)
 app.config.from_prefixed_env()
+
+if "AP_IP" not in app.config:
+    raise ValueError("AP_IP must be set in the config.toml or environment variables.")
 
 @app.route("/")
 def index():
