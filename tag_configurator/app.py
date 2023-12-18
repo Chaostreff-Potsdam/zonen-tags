@@ -15,6 +15,7 @@ app.config.from_prefixed_env()
 if "AP_IP" not in app.config:
     raise ValueError("AP_IP must be set in the config.toml or environment variables.")
 
+
 @app.route("/")
 def index():
     """Render the index page."""
@@ -112,7 +113,7 @@ def upload():
     relative_file_name = str(Path(file_name).relative_to("tag_configurator/"))
 
     try:
-        response = upload_image(file_name, mac_address, app.config['AP_IP'])
+        response = upload_image(file_name, mac_address, app.config["AP_IP"])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
