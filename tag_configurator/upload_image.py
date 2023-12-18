@@ -1,10 +1,11 @@
 #! python3
 """This script uploads an image to the access point."""
-from enum import Enum, auto
 import io
+from enum import Enum, auto
+
+import click
 import requests
 from PIL import Image
-import click
 
 
 class DisplaySize(Enum):

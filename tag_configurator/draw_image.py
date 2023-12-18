@@ -1,5 +1,6 @@
 """This script draws text on an image and saves it as a JPEG file."""
 import json
+
 try:
     import tomllib
 except ImportError:

@@ -1,7 +1,7 @@
 #! python3
 """Fix the icons in the tag configurator."""
-from PIL import Image
 import click
+from PIL import Image
 
 RED = (255, 0, 0, 255)
 WHITE = (255, 255, 255, 255)
@@ -14,7 +14,7 @@ def get_pixel_difference(
     pixel1: tuple[int, int, int, int], pixel2: tuple[int, int, int, int]
 ):
     """Get the difference between two RGBA pixels."""
-    return sum([abs(pixel1[i] - pixel2[i]) for i in range(4)])
+    return sum((abs(pixel1[i] - pixel2[i]) for i in range(4)))
 
 
 def find_closest_color(
