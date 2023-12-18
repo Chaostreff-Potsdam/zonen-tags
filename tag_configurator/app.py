@@ -16,7 +16,7 @@ from .upload_image import upload_image
 
 app = Flask(__name__)
 
-app.config.from_file("config.toml", load=tomllib.load, text=False, silent=True)
+app.config.from_file("../config.toml", load=tomllib.load, text=False, silent=True)
 app.config.from_prefixed_env()
 
 if "AP_IP" not in app.config:
