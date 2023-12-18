@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "tag_configurator"
+authors = [{ name = "source", email = "source@ccc-p.org" }]
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+requires-python = ">=3.9"
+dependencies = [
+    "click",
+    "Flask",
+    "numpy",
+    "Pillow",
+    "requests",
+    "tomli; python_version < '3.11'",
+]
+
+[project.urls]
+Home = "https://www.ccc-p.org"
