@@ -5,17 +5,18 @@ from flask import Flask, jsonify, request, url_for, render_template
 import requests.exceptions
 from .draw_image import generate_image
 from .upload_image import upload_image
+import tomllib
 
 app = Flask(__name__)
 
-AP_IP = "192.168.178.243"
-
+app.config.from_file("config.toml", load=tomllib.load, text=False)
+app.config.from_prefixed_env()
 
 @app.route("/")
 def index():
     """Render the index page."""
     inputs = [
-        [{"name": "Nickname", "icon": "user.png"}],
+        [{"name": "Nickname", "icon": "@.png"}],
         [{"name": "Habitat", "icon": "flag.png", "icon_slug": "first_line_icon"}],
         [
             {"name": "Space", "icon": "house.png", "icon_slug": "second_line_icon1"},
@@ -69,16 +70,16 @@ def image_upload():
     temp_file_path = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
     file.save(temp_file_path)
 
-    mac_address = request.form.get("macAddress")
+    mac_address = request.form.get("mac_address")
 
     relative_file_name = str(Path(temp_file_path).relative_to("tag_configurator/"))
 
     try:
-        response = upload_image(temp_file_path, mac_address, AP_IP)
+        response = upload_image(temp_file_path, mac_address, app.config["AP_IP"])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
-                "message": f"Could not connect to the access point at {AP_IP}.",
+                "message": f"Could not connect to the access point at {app.config['AP_IP']}.",
                 "file_name": relative_file_name,
             }
         )
@@ -95,8 +96,8 @@ def upload():
     data = request.get_json()
 
     # Extract the name, and mac address from the data
-    mac_address = data["macAddress"]
-    del data["macAddress"]
+    mac_address = data["mac_address"]
+    del data["mac_address"]
 
     file_name = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
     print(data)
@@ -108,11 +109,11 @@ def upload():
     relative_file_name = str(Path(file_name).relative_to("tag_configurator/"))
 
     try:
-        response = upload_image(file_name, mac_address, AP_IP)
+        response = upload_image(file_name, mac_address, app.config['AP_IP'])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
-                "message": f"Could not connect to the access point at {AP_IP}.",
+                "message": f"Could not connect to the access point at {app.config['AP_IP']}.",
                 "file_name": relative_file_name,
             }
         )

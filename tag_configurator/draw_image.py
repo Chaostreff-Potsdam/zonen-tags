@@ -24,7 +24,6 @@ def calculate_bounding_box(
     draw, font_path: str, font_size: int, text: str
 ) -> tuple[int, int, tuple[int, int, int, int]]:
     """Calculate the bounding box of the text."""
-    print(font_size)
     font = ImageFont.truetype(str(font_path), size=font_size)
     bounding_box = draw.textbbox((0, 0), text, font=font)
     text_width = bounding_box[2] - bounding_box[0]
