@@ -4,3 +4,6 @@ numpy==1.26.2
 Pillow==10.0.0
 requests==2.31.0
 tomli==2.0.1; python_version < '3.11'
+Flask-Caching==2.1.0
+redis==5.0.1
+gunicorn==21.2.0
