@@ -5,22 +5,32 @@ except ImportError:
     # use tomli as drop in replacement for tomllib
     # only for python<3.11
     import tomli as tomllib
+import base64
+from io import BytesIO
 import uuid
 from pathlib import Path
+from PIL import Image
 
 import requests.exceptions
-from flask import Flask, jsonify, render_template, request, url_for
+from flask import Flask, jsonify, render_template, request, send_file, url_for
 
 from .draw_image import generate_image
 from .upload_image import upload_image
 
+
+from flask_caching import Cache
+
 app = Flask(__name__)
+# tell Flask to use the above defined config
+
 
 app.config.from_file("../config.toml", load=tomllib.load, text=False, silent=True)
 app.config.from_prefixed_env()
 
 if "AP_IP" not in app.config:
     raise ValueError("AP_IP must be set in the config.toml or environment variables.")
+
+cache = Cache(app)
 
 
 @app.route("/")
@@ -70,6 +80,20 @@ def index():
     )
 
 
+@app.route("/image/<image_uuid>")
+def get_image(image_uuid):
+    """Get the image with the given uuid."""
+    try:
+        image = cache.get(image_uuid)
+
+        img_io = BytesIO()
+        image.save(img_io, "JPEG", quality="maximum")
+        img_io.seek(0)
+        return send_file(img_io, mimetype="image/jpeg")
+    except KeyError:
+        raise ValueError(f"Image with uuid {image_uuid} not found.")
+
+
 @app.route("/image_upload", methods=["POST"])
 def image_upload():
     """Upload an image to the access point."""
@@ -77,16 +101,12 @@ def image_upload():
     # Get the uploaded file from the request
     file = request.files["file"]
 
-    # Save the file to a temporary location
-    temp_file_path = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
-    file.save(temp_file_path)
-
     mac_address = request.form.get("mac_address")
 
-    relative_file_name = str(Path(temp_file_path).relative_to("tag_configurator/"))
-
+    image = Image.open(file)
+    relative_file_name = f"image/{uuid.uuid4()}"
     try:
-        response = upload_image(temp_file_path, mac_address, app.config["AP_IP"])
+        response = upload_image(image, mac_address, app.config["AP_IP"])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
@@ -110,17 +130,20 @@ def upload():
     mac_address = data["mac_address"]
     del data["mac_address"]
 
-    file_name = f"tag_configurator/static/user/{uuid.uuid4().hex}.jpg"
     print(data)
-    generate_image(
+
+    image = generate_image(
         data,
         template_image_path="tag_configurator/static/image_templates/37c3.png",
-        output_path=file_name,
+        output_path=None,
     )
-    relative_file_name = str(Path(file_name).relative_to("tag_configurator/"))
+
+    image_uuid = str(uuid.uuid4())
+    cache.set(image_uuid, image)
+    relative_file_name = f"image/{image_uuid}"
 
     try:
-        response = upload_image(file_name, mac_address, app.config["AP_IP"])
+        response = upload_image(image, mac_address, app.config["AP_IP"])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {

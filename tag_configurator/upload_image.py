@@ -39,14 +39,13 @@ def expand_mac(mac: str):
 
 
 def upload_image(
-    image_path: str,
+    image: str,
     display_mac: str,
     ap_ip: str,
     dither: bool = False,
 ):
     """Upload an image to the access point."""
-    rgb_image = Image.open(image_path)
-    rgb_image = rgb_image.convert("RGB")
+    rgb_image = image.convert("RGB")
 
     if rgb_image.size not in {size.size for size in DisplaySize}:
         # pylint: disable=line-too-long
@@ -63,6 +62,16 @@ def upload_image(
     )
 
 
+def upload_image_from_path(
+    image_path: str,
+    display_mac: str,
+    ap_ip: str,
+    dither: bool = False,
+):
+    """Open the image and upload it to the access point."""
+    return upload_image(Image.open(image_path), display_mac, ap_ip, dither=dither)
+
+
 @click.argument("image_path")
 @click.argument("mac")
 @click.argument("ip")
@@ -73,7 +82,7 @@ def main(ip, mac, image_path, dither):
     # while True:
     # mac = input("input mac to upload image: ")
     try:
-        response = upload_image(image_path, mac, ip, dither=dither)
+        response = upload_image_from_path(image_path, mac, ip, dither=dither)
         print(response.content.decode("utf-8"))
     except ConnectionError:
         print("Could not connect to the access point")
