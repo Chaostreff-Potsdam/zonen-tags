@@ -1,1 +1,15 @@
 AP_IP = "1.2.3.4"
+
+# DEBUG = true
+
+## config for Flask-Caching with redis ##
+#########################################
+
+CACHE_TYPE = "redis"
+CACHE_DEFAULT_TIMEOUT = 120 # seconds
+CACHE_REDIS_HOST="redis"
+CACHE_REDIS_PORT=6379
+CACHE_REDIS_DB=0
+
+# we don't need this if we set the vars above
+# CACHE_REDIS_URL="redis://redis:6379/0"
