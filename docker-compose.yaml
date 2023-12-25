@@ -3,7 +3,23 @@ services:
   app:
     build: .
     entrypoint: gunicorn tag_configurator.app:app --bind 0.0.0.0:5000  
-    ports:
-      - '5000:5000'
+    # ports:
+    #   - '5000:5000'
+    volumes:
+      - static_volume:/app/tag_configurator/static
+    depends_on:
+      - redis
   redis:
     image: redis
+  nginx:
+    image: nginx:latest
+    ports:
+      - 5000:80
+    depends_on:
+      - app
+    volumes:
+      - static_volume:/app/static
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+volumes:
+  static_volume:
