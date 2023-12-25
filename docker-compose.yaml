@@ -1,0 +1,9 @@
+version: '3'
+services:
+  app:
+    build: .
+    entrypoint: gunicorn tag_configurator.app:app --bind 0.0.0.0:5000  
+    ports:
+      - '5000:5000'
+  redis:
+    image: redis
