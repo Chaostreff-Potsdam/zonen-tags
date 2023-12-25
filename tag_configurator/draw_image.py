@@ -65,6 +65,8 @@ def draw_text(
     draw_text_area: bool = False,
 ):
     """Draw the text on the image."""
+    if content == "":
+        return
     field_settings = template_json[field_name]
 
     font_path = build_font_path(field_settings["font"])
