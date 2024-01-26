@@ -2,10 +2,14 @@
 """This script uploads an image to the access point."""
 import io
 from enum import Enum, auto
+import logging
 
 import click
 import requests
 from PIL import Image
+
+from tag_configurator.aplib import AccessPoint, image2tag_format
+from tag_configurator.proto_def import DataType
 
 
 class DisplaySize(Enum):
@@ -38,7 +42,7 @@ def expand_mac(mac: str):
     return mac.zfill(16).upper()
 
 
-def upload_image(
+def send_image(
     image: str,
     display_mac: str,
     ap_ip: str,
@@ -61,6 +65,37 @@ def upload_image(
         build_ap_url(ap_ip), data=payload, files={"file": buffer.getvalue()}, timeout=10
     )
 
+def send_image_via_station(
+    image: str,
+    display_mac: str,
+    port: str,
+    dither: bool = False,
+):
+    """Upload an image to the access point."""
+    rgb_image = image.convert("RGB")
+
+    if rgb_image.size not in {size.size for size in DisplaySize}:
+        # pylint: disable=line-too-long
+        raise ValueError(
+            f"Image size {rgb_image.size} does not match any display size."
+        )
+
+    def get_image(mac):
+        if expand_mac(mac) == expand_mac(display_mac):
+            return image2tag_format(
+                rgb_image,
+                DataType.BLACK_RED,
+            ), DataType.BLACK_RED
+        return None, None
+
+    def upload_successful(ap, mac):
+        print(f"Upload successful for {mac}")
+        ap.enabled = False
+    
+    
+    access_point = AccessPoint(get_image=get_image, upload_successful=upload_successful, serial_port=port)
+    access_point.main_loop()
+
 
 def upload_image_from_path(
     image_path: str,
@@ -69,21 +104,28 @@ def upload_image_from_path(
     dither: bool = False,
 ):
     """Open the image and upload it to the access point."""
-    return upload_image(Image.open(image_path), display_mac, ap_ip, dither=dither)
+    return send_image(Image.open(image_path), display_mac, ap_ip, dither=dither)
 
 
 @click.argument("image_path")
 @click.argument("mac")
-@click.argument("ip")
+@click.option("-i", "--ip", default=None, help="The access points IP address")
+@click.option("-p", "--port", show_default=True, default="/dev/ttyACM0", help="The Zigbee Sticks serial port")
 @click.option("-d", "--dither", is_flag=True, show_default=True, default=False)
 @click.command()
-def main(ip, mac, image_path, dither):
+def main(ip, mac, image_path, dither, port):
     """Upload an image to the access point."""
     # while True:
     # mac = input("input mac to upload image: ")
+    logging.basicConfig(format="%(asctime)s - %(name)s - [%(levelname)s] - %(message)s")
     try:
-        response = upload_image_from_path(image_path, mac, ip, dither=dither)
-        print(response.content.decode("utf-8"))
+        if ip is not None:
+            response = upload_image_from_path(image_path, mac, ip, dither=dither)
+            print(response.content.decode("utf-8"))
+        else:
+            print("upload directly")
+            send_image_via_station(Image.open(image_path), mac, dither=dither,port=port)
+
     except ConnectionError:
         print("Could not connect to the access point")
 

@@ -171,10 +171,10 @@ def generate_image(
 
     # Convert the image to 24-bit RGB
     rgb_image = image.convert("RGB")
-    
+
     if output_path is not None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         # Save the image as JPEG with maximum quality
         rgb_image.save(output_path, "JPEG", quality="maximum")
-    
+
     return rgb_image
