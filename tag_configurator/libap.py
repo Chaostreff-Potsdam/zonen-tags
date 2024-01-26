@@ -26,52 +26,6 @@ from proto_def import (
 BLOCK_SIZE = 4096
 
 
-class FakeSerial:
-    def __init__(self, *arg, **kwargs):
-        self.serial = serial.Serial(*arg, **kwargs)
-        with open("serial_log.txt", "r") as fp:
-            self.log = fp.readlines()
-
-        self.action = None
-        self.expected_data = None
-        self.length = None
-        self.index = 0
-        self.next_line()
-
-    def next_line(self):
-        line = self.log.pop(0).split(",")
-        self.index += 1
-        if line[0] == "read":
-            self.action = line[0]
-            self.length = int(line[1])
-            self.expected_data = bytes.fromhex(line[2])
-        else:
-            self.action = line[0]
-            self.expected_data = bytes.fromhex(line[1])
-
-    def read(self, size=1):
-        result = bytearray()
-        for i in range(0, size):
-            if self.length == 0:
-                self.next_line()
-                assert self.action == "read"
-            self.length -= 1
-            result.append(self.expected_data[0])
-            self.expected_data = self.expected_data[1:]
-        return bytes(result)
-
-    def write(self, data):
-        self.next_line()
-        assert self.action == "write", self.index
-        assert data == self.expected_data, (
-            data.hex() + " != " + self.expected_data.hex()
-        )
-        # self.next_line()
-
-    def flushInput(self):
-        pass
-
-
 def load_image(image_path: Path, data_type: DataType):
     image = Image.open(image_path)
     return image2tag_format(image, data_type)
@@ -138,16 +92,34 @@ class AccessPoint:
         serial_port: str = "/dev/ttyACM0",
     ):
         self.log = logging.getLogger("AccessPoint")
-        self.log.setLevel(logging.DEBUG)
-        # self.ap = FakeSerial(serial_port, 115200, timeout=0.1)
+
         self.ap = serial.Serial(serial_port, 115200, timeout=0.1)
         self.ap.flushInput()
         self.get_image = get_image
         self.upload_successful = upload_successful
         self.enabled = True
 
+    def read_hex(self, length):
+        return bytes.fromhex(self.ap.read(length * 2).decode("utf-8"))
+
+    def wait4str(self, string):
+        if isinstance(string, str):
+            string = string.encode("utf-8")
+        input_buffer = deque(maxlen=len(string))
+        while True:
+            input_buffer.append(self.ap.read())
+            command = b"".join(input_buffer)
+            if command == string:
+                return True
+
+    def wait_and_read(self, start_string, length, end_string="\n"):
+        self.wait4str(start_string)
+        result = self.read_hex(length)
+        self.wait4str(end_string)
+        return result
+
     def main_loop(self):
-        self.log.info("AP started")
+        self.enabled = True
         input_buffer = deque(maxlen=4)
         while self.enabled:
             input_buffer.append(self.ap.read())
@@ -160,6 +132,33 @@ class AccessPoint:
                 self.handle_transfer_complete()
             elif command == b"ACK>":
                 self.handle_ack()
+
+    def get_ap_info(self):
+        """Reads the AP info and prints it to the log."""
+        self.ap.write(b"NFO?")
+        self.wait4str("ACK>")
+
+        hw_type = int.from_bytes(self.wait_and_read("TYP>", 1))
+        version = int.from_bytes(self.wait_and_read("VER>", 2))
+        mac = self.wait_and_read("MAC>", 8)
+        channel = int.from_bytes(self.wait_and_read("ZCH>", 1))
+        power = int.from_bytes(self.wait_and_read("ZPW>", 1))
+        pending = int.from_bytes(self.wait_and_read("PEN>", 1))
+        no_update = int.from_bytes(self.wait_and_read("NOP>", 1))
+
+        self.log.info(f"AP MAC: {hex_reverse_bytes(mac)}")
+        self.log.info(f"HW Type: {hw_type}, Version: {version}, Power: {power}")
+        self.log.info(f"Channel: {channel}, Pending: {pending}, No Update: {no_update}")
+
+        return {
+            "hw_type": hw_type,
+            "version": version,
+            "mac": mac,
+            "channel": channel,
+            "power": power,
+            "pending": pending,
+            "no_update": no_update,
+        }
 
     def handle_available_data_request(self):
         """
@@ -196,10 +195,7 @@ class AccessPoint:
             attemptsLeft=60 * 24,  # default taken from ESP firmware
             targetMac=adr.sourceMac,
         )
-        # OpenEPaper checksums seem to be quite literal "checksums" even though they call them CRCs
-        # in their firmware. they're just 8- or 16-bit integers, which overflow while adding.
-        # we recreate this native overflow behaviour by MOD-0x100-ing them
-        sda.checksum = calculate_8bit_checksum(bytes(sda))
+        sda.update_checksum()
 
         self.log.info(f"Tag needs new data. sending {sda}")
         self.log.info(bytes(sda).hex(" "))
@@ -230,7 +226,7 @@ class AccessPoint:
             )
             self.log.info("Sending: cancel block request")
             cxd = AvailDataInfo(targetMac=block_request.srcMac)
-            cxd.checksum = calculate_8bit_checksum(bytes(cxd)[1:])
+            cxd.update_checksum()
             self.ap.write(b"CXD>")
             self.ap.write(bytes(cxd))
             return
@@ -274,11 +270,14 @@ class AccessPoint:
         self.upload_successful(self, mac)
 
     def handle_ack(self):
-        print("ACK")
+        self.log.debug("ACK")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
 
     def get_image(mac):
         if mac == "0000021b1ad03b17":
@@ -293,4 +292,5 @@ if __name__ == "__main__":
         ap.enabled = False
 
     access_point = AccessPoint(get_image=get_image, upload_successful=upload_successful)
+    access_point.get_ap_info()
     access_point.main_loop()

@@ -8,7 +8,7 @@ import click
 import requests
 from PIL import Image
 
-from tag_configurator.aplib import AccessPoint, image2tag_format
+from tag_configurator.libap import AccessPoint, image2tag_format
 from tag_configurator.proto_def import DataType
 
 

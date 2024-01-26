@@ -1,12 +1,11 @@
-import ctypes
-from enum import Enum, IntEnum
-
-from c_util import c_pretty
-
 """
 c-structures are copies from AP firmware.
 used for serial communication.
 """
+import ctypes
+from enum import Enum, IntEnum
+
+from c_util import c_pretty
 
 
 class InvalidDataTypeError(Exception):
@@ -70,11 +69,32 @@ class EPT_LUT(IntEnum):
     FAST = 3
 
 
+MacAddress = ctypes.c_uint8 * 8
+DataVersion = ctypes.c_uint8 * 8
+
+# @c_pretty
+# class APInfo(ctypes.Structure):
+#     _pack_ = 1
+#     _fields_ = (
+#         ("hardwareType", ctypes.c_uint8),
+#         ("version", DataVersion),  # MD5 (first half) of potential traffic
+#         ("dataSize", ctypes.c_uint32),
+#         ("dataType", ctypes.c_uint8),  # allows for 16 different datatypes
+#         # extra specification or instruction for the tag (LUT to be used for drawing image)
+#         ("dataTypeArgument", ctypes.c_uint8),
+#         (
+#             "nextCheckIn",
+#             ctypes.c_uint16,
+#         ),  # when should the tag check-in again? Measured in minutes
+#         ("attemptsLeft", ctypes.c_uint16),
+#         ("targetMac", MacAddress),
+#     )
+
 @c_pretty
 class AvailableDataRequest(ctypes.Structure):
     _fields_ = (
         ("outerChecksum", ctypes.c_uint8),
-        ("sourceMac", ctypes.c_uint8 * 8),
+        ("sourceMac", MacAddress),
         ("innerChecksum", ctypes.c_uint8),
         ("lastPacketLQI", ctypes.c_uint8),
         ("lastPacketRSSI", ctypes.c_int8),
@@ -90,7 +110,7 @@ class AvailDataInfo(ctypes.Structure):
     _pack_ = 1
     _fields_ = (
         ("checksum", ctypes.c_uint8),
-        ("dataVer", ctypes.c_uint8 * 8),  # MD5 (first half) of potential traffic
+        ("dataVer", DataVersion),  # MD5 (first half) of potential traffic
         ("dataSize", ctypes.c_uint32),
         ("dataType", ctypes.c_uint8),  # allows for 16 different datatypes
         # extra specification or instruction for the tag (LUT to be used for drawing image)
@@ -100,8 +120,11 @@ class AvailDataInfo(ctypes.Structure):
             ctypes.c_uint16,
         ),  # when should the tag check-in again? Measured in minutes
         ("attemptsLeft", ctypes.c_uint16),
-        ("targetMac", ctypes.c_uint8 * 8),
+        ("targetMac", MacAddress),
     )
+
+    def update_checksum(self):
+        self.checksum = calculate_8bit_checksum(bytes(self))
 
 
 @c_pretty
@@ -109,9 +132,9 @@ class BlockRequest(ctypes.Structure):
     _pack_ = 1
     _fields_ = (
         ("checksum", ctypes.c_uint8),
-        ("dataVer", ctypes.c_uint8 * 8),  # MD5 (first half) of potential traffic
+        ("dataVer", DataVersion),  # MD5 (first half) of potential traffic
         ("blockId", ctypes.c_uint8),
-        ("srcMac", ctypes.c_uint8 * 8),
+        ("srcMac", MacAddress),
     )
 
 
@@ -129,7 +152,7 @@ class XferComplete(ctypes.Structure):
     _pack_ = 1
     _fields_ = (
         ("checksum", ctypes.c_uint8),
-        ("srcMac", ctypes.c_uint8 * 8),
+        ("srcMac", MacAddress),
     )
 
 
