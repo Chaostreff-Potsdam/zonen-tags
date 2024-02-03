@@ -83,7 +83,6 @@ def short_md5(data):
 
     return (ctypes.c_ubyte * 8).from_buffer_copy(hashlib.md5(data).digest()[:8])
 
-
 class AccessPoint:
     def __init__(
         self,
@@ -159,6 +158,7 @@ class AccessPoint:
             "pending": pending,
             "no_update": no_update,
         }
+    
 
     def handle_available_data_request(self):
         """
@@ -178,7 +178,7 @@ class AccessPoint:
         self.log.debug(f"{adr}")
 
         mac = hex_reverse_bytes(adr.sourceMac, None)
-
+    
         image, data_type = self.get_image(mac)
 
         if image is None:
@@ -203,6 +203,18 @@ class AccessPoint:
         self.ap.write(b"SDA>")
         self.ap.write(bytes(sda))
 
+    def get_block(self, image, block_id):
+        """Get the corresponding data block."""
+        # we just assume, that the data is black-and-red (0x21) - see handle_adr()
+        offset = block_id * BLOCK_SIZE
+        length = min(len(image) - offset, BLOCK_SIZE)
+        self.log.info(f"Transmitting block {block_id} of length {length}")
+
+        transmit_data = image[offset : offset + length]
+        assert len(transmit_data) == length, "Transmit data length does not equal expected length!"
+        self.log.debug(f"Block bytes: {transmit_data.hex()}")
+        return transmit_data
+    
     def handle_block_request(self):
         """
         Handles a BlockRequest, which is issued by the AP when it needs data
@@ -231,15 +243,10 @@ class AccessPoint:
             self.ap.write(bytes(cxd))
             return
 
-        # we just assume, that the data is black-and-red (0x21) - see handle_adr()
-        offset = block_request.blockId * BLOCK_SIZE
-        length = min(len(image) - offset, BLOCK_SIZE)
-        self.log.info(f"Transmitting block {block_request.blockId} of length {length}")
+        data_block = self.get_block(image, block_request.blockId)
 
-        transmit_data = image[offset : offset + length]
-        self.log.debug(f"Block bytes: {transmit_data.hex()}")
         header = bytes(
-            BlockHeader(length=length, checksum=calculate_16bit_checksum(transmit_data))
+            BlockHeader(length=len(data_block), checksum=calculate_16bit_checksum(data_block))
         )
         self.ap.write(b">D>")
         # waiting for a little bit, but not too long, seems to be required for successful transmission.
@@ -249,10 +256,10 @@ class AccessPoint:
         sleep(0.05)
         # the AP-firmware XORs the data back on retrieval
         self.ap.write(xor(header))
-        self.ap.write(xor(transmit_data))
+        self.ap.write(xor(data_block))
         # the AP-firmware expects bulk-transfers to always be 4100 bytes (due to the DMA mechanism)
         # thus we need to fill the block with junk (0xFF when unXORd in this case)
-        self.ap.write(bytes([0xAA] * (BLOCK_SIZE - length)))
+        self.ap.write(bytes([0xAA] * (BLOCK_SIZE - len(data_block))))
 
     def handle_transfer_complete(self):
         """
