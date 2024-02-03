@@ -31,6 +31,10 @@ def load_image(image_path: Path, data_type: DataType):
     return image2tag_format(image, data_type)
 
 
+def load_firmware(firmware_path: Path):
+    with open(firmware_path, 'rb') as firmware:
+        return bytearray(firmware.read())
+
 def quantize_image(image: Image, color_palette: list):
     """Quantize the image to the given color palette."""
     palette_image = Image.new("P", (1, 1))
