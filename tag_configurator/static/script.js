@@ -16,6 +16,16 @@ $("#save_button").on("click", function () {
     download_link[0].click();
 });
 
+
+$("#save_image_button").on("click", function () {
+    let formData = getFormData($("#form"));
+    let image_link = $("#example").attr("src");
+    let download_link = $("#jpg_download");
+    download_link.attr("href", image_link);
+    download_link.attr("download", formData.nickname + ".jpg");
+    download_link[0].click();
+});
+
 $("#load_button").on("click", function () {
    $("#load_modal").modal("show");
 });

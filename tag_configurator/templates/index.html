@@ -71,14 +71,20 @@
                                 <span class="input-group-text"><img src="static/icons/pin.png" alt="pin.png"></span>
                                 <div class="form-floating">
                                     <input type="text" class="form-control form-control-lg" id="mac_address"
-                                        name="mac_address" placeholder="Enter your MAC address" required>
+                                        name="mac_address" placeholder="Enter your MAC address" value="{{ mac }}" required>
                                     <label for="mac_address" class="form-label">MAC Address</label>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2 d-flex align-items-center">
+                        <div class="col d-flex align-items-center">
                             <div class="input-group mb-3">
                                 <button id="upload_button" type="button" class="btn btn-primary btn-lg">Upload</button>
+                            </div>
+                        </div>
+                        <div class="col d-flex align-items-center">
+                            <div class="input-group mb-3">
+                                <button id="save_image_button" type="button" class="btn btn-secondary btn-lg">Save&nbsp;Image</button>
+                                <a id="jpg_download" style="display: none;"></a>
                             </div>
                         </div>
                         <div class="col d-flex align-items-center">
