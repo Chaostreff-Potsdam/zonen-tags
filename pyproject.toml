@@ -19,8 +19,6 @@ dependencies = [
     "Pillow",
     "requests",
     "tomli; python_version < '3.11'",
-    "Flask-Caching",
-    "redis",
 ]
 
 [project.optional-dependencies]
