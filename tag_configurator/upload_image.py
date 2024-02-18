@@ -8,8 +8,8 @@ import click
 import requests
 from PIL import Image
 
-from tag_configurator.libap import AccessPoint, image2tag_format
-from tag_configurator.proto_def import DataType
+from .libap import AccessPoint, image2tag_format
+from .proto_def import DataType
 
 
 class DisplaySize(Enum):
@@ -65,6 +65,7 @@ def send_image(
         build_ap_url(ap_ip), data=payload, files={"file": buffer.getvalue()}, timeout=10
     )
 
+
 def send_image_via_station(
     image: str,
     display_mac: str,
@@ -84,18 +85,22 @@ def send_image_via_station(
     def get_image(mac):
         if any_mac or expand_mac(mac) == expand_mac(display_mac):
             # TODO: check if tag supports BW or BWR
-            return image2tag_format(
-                rgb_image,
+            return (
+                image2tag_format(
+                    rgb_image,
+                    DataType.BLACK,
+                ),
                 DataType.BLACK,
-            ), DataType.BLACK
+            )
         return None, None
 
     def upload_successful(ap, mac):
         print(f"Upload successful for {mac}")
         ap.enabled = any_mac
-    
-    
-    access_point = AccessPoint(get_image=get_image, upload_successful=upload_successful, serial_port=port)
+
+    access_point = AccessPoint(
+        get_image=get_image, upload_successful=upload_successful, serial_port=port
+    )
     access_point.main_loop()
 
 
@@ -112,7 +117,13 @@ def upload_image_from_path(
 @click.argument("image_path")
 @click.argument("mac")
 @click.option("-i", "--ip", default=None, help="The access points IP address")
-@click.option("-p", "--port", show_default=True, default="/dev/ttyACM0", help="The Zigbee Sticks serial port")
+@click.option(
+    "-p",
+    "--port",
+    show_default=True,
+    default="/dev/ttyACM0",
+    help="The Zigbee Sticks serial port",
+)
 @click.option("-d", "--dither", is_flag=True, show_default=True, default=False)
 @click.option("-a", "--any-mac", is_flag=True, show_default=True, default=False)
 @click.option("-v", "--verbose", is_flag=True, show_default=True, default=False)
@@ -121,14 +132,19 @@ def main(ip, mac, image_path, dither, port, any_mac, verbose):
     """Upload an image to the access point."""
     # while True:
     # mac = input("input mac to upload image: ")
-    logging.basicConfig(format="%(asctime)s - %(name)s - [%(levelname)s] - %(message)s", level=logging.DEBUG if verbose else logging.INFO)
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - [%(levelname)s] - %(message)s",
+        level=logging.DEBUG if verbose else logging.INFO,
+    )
     try:
         if ip is not None:
             response = upload_image_from_path(image_path, mac, ip, dither=dither)
             print(response.content.decode("utf-8"))
         else:
             print("upload directly")
-            send_image_via_station(Image.open(image_path), mac, dither=dither,port=port, any_mac=any_mac)
+            send_image_via_station(
+                Image.open(image_path), mac, dither=dither, port=port, any_mac=any_mac
+            )
 
     except ConnectionError:
         print("Could not connect to the access point")

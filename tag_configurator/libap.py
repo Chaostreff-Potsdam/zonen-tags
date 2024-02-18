@@ -9,8 +9,8 @@ import serial
 from bitarray import bitarray
 from PIL import Image
 
-from c_util import hex_bytes, hex_reverse_bytes
-from proto_def import (
+from .c_util import hex_bytes, hex_reverse_bytes
+from .proto_def import (
     EPT_LUT,
     AvailableDataRequest,
     AvailDataInfo,
@@ -32,8 +32,9 @@ def load_image(image_path: Path, data_type: DataType):
 
 
 def load_firmware(firmware_path: Path):
-    with open(firmware_path, 'rb') as firmware:
+    with open(firmware_path, "rb") as firmware:
         return bytearray(firmware.read())
+
 
 def quantize_image(image: Image, color_palette: list):
     """Quantize the image to the given color palette."""
@@ -87,6 +88,7 @@ def short_md5(data):
 
     return (ctypes.c_ubyte * 8).from_buffer_copy(hashlib.md5(data).digest()[:8])
 
+
 class AccessPoint:
     def __init__(
         self,
@@ -96,10 +98,14 @@ class AccessPoint:
     ):
         self.log = logging.getLogger("AccessPoint")
 
-        self.ap = serial.Serial(serial_port, 115200, timeout=0.1)
+        if isinstance(serial_port, str):
+            self.ap = serial.Serial(serial_port, 115200, timeout=0.1)
+        else:
+            self.ap = serial_port
         self.ap.flushInput()
         self.get_image = get_image
         self.upload_successful = upload_successful
+        self.adr_cache = {}
         self.enabled = True
 
     def read_hex(self, length):
@@ -162,7 +168,6 @@ class AccessPoint:
             "pending": pending,
             "no_update": no_update,
         }
-    
 
     def handle_available_data_request(self):
         """
@@ -173,8 +178,7 @@ class AccessPoint:
         hence the method name. if so, we generate an AvailDataInfo,
         which the AP will deliver to the tag on its next check-in
         """
-
-        buffer = self.ap.read(30)  # ctypes.sizeof(AvailableDataRequest))
+        buffer = self.ap.read(ctypes.sizeof(AvailableDataRequest))
         adr = AvailableDataRequest.from_buffer_copy(buffer)
 
         pretty_mac = hex_reverse_bytes(adr.sourceMac)
@@ -182,8 +186,15 @@ class AccessPoint:
         self.log.debug(f"{adr}")
 
         mac = hex_reverse_bytes(adr.sourceMac, None)
-    
-        image, data_type = self.get_image(mac)
+
+        if adr.outerChecksum != calculate_8bit_checksum(buffer[1:]):
+            raise ValueError("Outer Checksum mismatch!")
+
+        if adr.innerChecksum != calculate_8bit_checksum(buffer[10:]):
+            raise ValueError("Inner Checksum mismatch!")
+
+        image, data_type = self.get_image(mac, adr)
+        self.adr_cache[mac] = adr
 
         if image is None:
             self.log.info(f"No image found for {pretty_mac}")
@@ -215,10 +226,12 @@ class AccessPoint:
         self.log.info(f"Transmitting block {block_id} of length {length}")
 
         transmit_data = image[offset : offset + length]
-        assert len(transmit_data) == length, "Transmit data length does not equal expected length!"
-        self.log.debug(f"Block bytes: {transmit_data.hex()}")
+        assert (
+            len(transmit_data) == length
+        ), "Transmit data length does not equal expected length!"
+        # self.log.debug(f"Block bytes: {transmit_data.hex()}")
         return transmit_data
-    
+
     def handle_block_request(self):
         """
         Handles a BlockRequest, which is issued by the AP when it needs data
@@ -234,7 +247,7 @@ class AccessPoint:
         self.log.info(f"Got RQB for MAC {hex_reverse_bytes(block_request.srcMac)}")
         mac = hex_reverse_bytes(block_request.srcMac, None)
 
-        image, data_type = self.get_image(mac)
+        image, data_type = self.get_image(mac, self.adr_cache[mac])
 
         if image is None:
             self.log.warning(
@@ -250,7 +263,9 @@ class AccessPoint:
         data_block = self.get_block(image, block_request.blockId)
 
         header = bytes(
-            BlockHeader(length=len(data_block), checksum=calculate_16bit_checksum(data_block))
+            BlockHeader(
+                length=len(data_block), checksum=calculate_16bit_checksum(data_block)
+            )
         )
         self.ap.write(b">D>")
         # waiting for a little bit, but not too long, seems to be required for successful transmission.

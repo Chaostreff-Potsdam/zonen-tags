@@ -1,8 +1,7 @@
-import ctypes
-
 """
 helpers to interact with c-struct based data, which we transfer with the AP
 """
+import ctypes
 
 
 def c_format(value):
@@ -35,6 +34,7 @@ def c_pretty(inst):
 
     inst.__repr__ = __repr__
     inst._asdict = _asdict
+
     return inst
 
 

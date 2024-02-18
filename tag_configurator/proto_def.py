@@ -5,7 +5,7 @@ used for serial communication.
 import ctypes
 from enum import Enum, IntEnum
 
-from c_util import c_pretty
+from .c_util import c_pretty
 
 
 class InvalidDataTypeError(Exception):
@@ -90,8 +90,10 @@ DataVersion = ctypes.c_uint8 * 8
 #         ("targetMac", MacAddress),
 #     )
 
+
 @c_pretty
 class AvailableDataRequest(ctypes.Structure):
+    _pack_ = 1
     _fields_ = (
         ("outerChecksum", ctypes.c_uint8),
         ("sourceMac", MacAddress),
@@ -102,6 +104,11 @@ class AvailableDataRequest(ctypes.Structure):
         ("batteryMv", ctypes.c_uint16),
         ("hwType", ctypes.c_uint8),
         ("wakeupReason", ctypes.c_uint8),
+        ("capabilities", ctypes.c_uint8),
+        ("tagSoftwareVersion", ctypes.c_uint16),
+        ("currentChannel", ctypes.c_uint8),
+        ("customMode", ctypes.c_uint8),
+        ("reserved", ctypes.c_uint8 * 8),
     )
 
 
