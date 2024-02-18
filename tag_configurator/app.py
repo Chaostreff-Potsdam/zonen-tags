@@ -7,6 +7,7 @@ except ImportError:
     import tomli as tomllib
 import base64
 from io import BytesIO
+import io
 import uuid
 from pathlib import Path
 from PIL import Image
@@ -15,14 +16,12 @@ import requests.exceptions
 from flask import Flask, jsonify, render_template, request, send_file, url_for
 
 from .draw_image import generate_image
-from .upload_image import upload_image
-
+from .upload_image import send_image
+from redis import Redis
 
 from flask_caching import Cache
 
 app = Flask(__name__)
-# tell Flask to use the above defined config
-
 
 app.config.from_file("../config.toml", load=tomllib.load, text=False, silent=True)
 app.config.from_prefixed_env()
@@ -30,7 +29,31 @@ app.config.from_prefixed_env()
 if "AP_IP" not in app.config:
     raise ValueError("AP_IP must be set in the config.toml or environment variables.")
 
-cache = Cache(app)
+
+class ImageDB:
+    """A simple image database that stores images in the file system."""
+
+    def __init__(self):
+        self.base_path = Path("/tmp/zonen_tags/images")
+        self.base_path.mkdir(parents=True, exist_ok=True)
+
+    def get(self, image_uuid: str):
+        """Load the image with the given uuid from the database."""
+        return Image.open(self.base_path / f"{image_uuid}.png")
+
+    def set(self, image: Image, image_uuid: str):
+        """Save the image with the given uuid to the database."""
+        image.save(self.base_path / f"{image_uuid}.png")
+
+
+image_db = ImageDB()
+
+
+def add_slug_and_icon(inputs):
+    for row in inputs:
+        for field in row:
+            field["slug"] = field["name"].lower().replace(" ", "_")
+            field["icon"] = "static/icons/" + field["icon"]
 
 
 @app.route("/")
@@ -58,10 +81,7 @@ def index():
         # [{"name": "MAC Address", "icon": "mac.png"}],
     ]
 
-    for row in inputs:
-        for field in row:
-            field["slug"] = field["name"].lower().replace(" ", "_")
-            field["icon"] = "static/icons/" + field["icon"]
+    add_slug_and_icon(inputs)
 
     return render_template(
         "index.html",
@@ -84,12 +104,7 @@ def index():
 def get_image(image_uuid):
     """Get the image with the given uuid."""
     try:
-        image = cache.get(image_uuid)
-
-        img_io = BytesIO()
-        image.save(img_io, "JPEG", quality="maximum")
-        img_io.seek(0)
-        return send_file(img_io, mimetype="image/jpeg")
+        return send_file(image_db.get(image_uuid), mimetype="image/png")
     except KeyError:
         raise ValueError(f"Image with uuid {image_uuid} not found.")
 
@@ -106,7 +121,7 @@ def image_upload():
     image = Image.open(file)
     relative_file_name = f"image/{uuid.uuid4()}"
     try:
-        response = upload_image(image, mac_address, app.config["AP_IP"])
+        response = send_image(image, mac_address, app.config["AP_IP"])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
@@ -120,8 +135,8 @@ def image_upload():
     return jsonify({"message": response.text, "file_name": relative_file_name})
 
 
-@app.route("/upload", methods=["POST"])
-def upload():
+@app.route("/generate", methods=["POST"])
+def generate():
     """Generate an image from the given data and upload it to the access point."""
     # Get the data from the POST request
     data = request.get_json()
@@ -139,11 +154,12 @@ def upload():
     )
 
     image_uuid = str(uuid.uuid4())
-    cache.set(image_uuid, image)
+    image_db.set(image, image_uuid)
+
     relative_file_name = f"image/{image_uuid}"
 
     try:
-        response = upload_image(image, mac_address, app.config["AP_IP"])
+        response = send_image(image, mac_address, app.config["AP_IP"])
     except requests.exceptions.ConnectionError:
         return jsonify(
             {
