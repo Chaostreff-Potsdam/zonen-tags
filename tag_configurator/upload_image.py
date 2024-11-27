@@ -82,7 +82,7 @@ def send_image_via_station(
             f"Image size {rgb_image.size} does not match any display size."
         )
 
-    def get_image(mac):
+    def get_image(mac, adr):
         if any_mac or expand_mac(mac) == expand_mac(display_mac):
             # TODO: check if tag supports BW or BWR
             return (
@@ -101,6 +101,7 @@ def send_image_via_station(
     access_point = AccessPoint(
         get_image=get_image, upload_successful=upload_successful, serial_port=port
     )
+    access_point.get_ap_info()
     access_point.main_loop()
 
 
